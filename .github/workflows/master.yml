@@ -5,7 +5,7 @@ name: Release with mvn
 
 on:
   push:
-    branches: [ master ] 
+    branches: [ master, multi-arch-test ]
 
 jobs:
   build:
@@ -38,12 +38,13 @@ jobs:
       name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     -
       name: Build with Maven
-      run: mvn -B clean integration-test package assembly:single docker:build docker:push
+      run: mvn -B clean integration-test package assembly:single docker:build docker:push -Ddocker.push.registry=ghcr.io
 
 # github_release:
     -
@@ -59,5 +60,5 @@ jobs:
 
     -
       name: push latest if it's a release
-      if: ${{ ! endsWith( env.app_ver, '-SNAPSHOT' ) }}
-      run: docker buildx imagetools create docker.io/obsidiandynamics/kafdrop:$app_ver --tag docker.io/obsidiandynamics/kafdrop:latest
+      #if: ${{ ! endsWith( env.app_ver, '-SNAPSHOT' ) }}
+      run: docker buildx imagetools create ghcr.io/blefish/kafdrop:$app_ver --tag ghcr.io/blefish/kafdrop:latest
